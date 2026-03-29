@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Site Inspector — AI + Expert Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0F0E0C;--paper:#F5F2EC;--gold:#C9A84C;--gold-light:#F0D98A;
+  --rust:#C44B2B;--sage:#2D5C3F;--cream:#FAF8F3;--muted:#8A8278;
+  --border:#E0DAD0;--card:#FFFFFF;--blue:#1A3A5C;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;}
+.header{background:var(--ink);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--gold);}
+.logo span{color:#fff;font-weight:400;}
+.badge-free{font-size:11px;font-weight:500;background:var(--sage);color:#fff;padding:4px 10px;border-radius:20px;}
+.hero{background:var(--ink);padding:28px 20px 36px;text-align:center;}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:#fff;line-height:1.2;margin-bottom:12px;letter-spacing:-0.5px;}
+.hero h1 em{color:var(--gold);font-style:normal;}
+.hero-sub{font-size:13px;color:#9A9590;line-height:1.6;max-width:300px;margin:0 auto 20px;}
+.hero-stats{display:flex;justify-content:center;gap:24px;}
+.stat{text-align:center;}
+.stat-num{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--gold);}
+.stat-lbl{font-size:11px;color:#6A6560;margin-top:2px;}
+.main{padding:20px 16px;max-width:480px;margin:0 auto;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.stage-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px;}
+.stage-btn{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;text-align:left;transition:all 0.15s;position:relative;overflow:hidden;}
+.stage-btn.selected{border-color:var(--gold);background:#FFF9EC;}
+.stage-btn.selected::after{content:'✓';position:absolute;top:7px;right:7px;width:17px;height:17px;background:var(--gold);color:#fff;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.stage-icon{font-size:18px;margin-bottom:5px;}
+.stage-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--ink);line-height:1.3;}
+.stage-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.upload-zone{background:var(--card);border:2px dashed var(--border);border-radius:16px;padding:28px 20px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:18px;position:relative;overflow:hidden;}
+.upload-zone:hover{border-color:var(--gold);background:#FFF9EC;}
+.upload-zone.has-image{padding:0;border-style:solid;border-color:var(--gold);}
+.upload-icon{width:44px;height:44px;background:var(--paper);border-radius:10px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.upload-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:5px;}
+.upload-sub{font-size:12px;color:var(--muted);line-height:1.5;}
+.upload-hint{font-size:11px;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+#file-input{display:none;}
+#preview-img{width:100%;max-height:260px;object-fit:cover;border-radius:14px;display:none;}
+.img-change{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:#fff;font-size:11px;padding:5px 10px;border-radius:20px;cursor:pointer;display:none;}
+.btn-analyse{width:100%;background:var(--gold);color:var(--ink);border:none;border-radius:14px;padding:16px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:10px;}
+.btn-analyse:hover{background:#D4A830;transform:translateY(-1px);}
+.btn-analyse:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+.checks-left{text-align:center;font-size:12px;color:var(--muted);margin-bottom:22px;}
+.checks-left strong{color:var(--sage);}
+.loading-card{background:var(--card);border-radius:16px;padding:26px 20px;text-align:center;display:none;margin-bottom:18px;border:1px solid var(--border);}
+.loading-spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-steps{list-style:none;text-align:left;margin-top:14px;}
+.loading-steps li{font-size:13px;color:var(--muted);padding:4px 0;display:flex;align-items:center;gap:8px;}
+.loading-steps li.active{color:var(--ink);font-weight:500;}
+.loading-steps li.done{color:var(--sage);}
+.step-dot{width:7px;height:7px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.loading-steps li.active .step-dot{background:var(--gold);}
+.loading-steps li.done .step-dot{background:var(--sage);}
+.result-card{display:none;margin-bottom:22px;animation:fadeUp 0.4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.result-header{background:var(--ink);border-radius:16px 16px 0 0;padding:14px 18px;display:flex;align-items:center;gap:12px;}
+.result-stage-tag{font-size:10px;font-weight:600;letter-spacing:1px;color:var(--gold);text-transform:uppercase;}
+.result-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-top:2px;}
+.verdict-bar{display:flex;border-bottom:1px solid var(--border);}
+.verdict-item{flex:1;padding:12px 10px;text-align:center;background:var(--card);}
+.verdict-item:not(:last-child){border-right:1px solid var(--border);}
+.verdict-icon{font-size:18px;margin-bottom:3px;}
+.verdict-label{font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--muted);}
+.verdict-value{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-top:2px;}
+.verdict-ok{color:var(--sage);}
+.verdict-warn{color:var(--rust);}
+.verdict-neutral{color:var(--gold);}
+.result-body{background:var(--card);border-radius:0 0 16px 16px;padding:16px;}
+.finding-section{margin-bottom:16px;}
+.finding-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.finding-ok{color:var(--sage);}
+.finding-warn{color:var(--rust);}
+.finding-action{color:var(--ink);}
+.finding-item{display:flex;gap:9px;padding:9px 11px;border-radius:9px;margin-bottom:5px;font-size:13px;line-height:1.5;align-items:flex-start;}
+.finding-item.ok{background:#F0FBF4;color:#1A4A2A;}
+.finding-item.warn{background:#FEF0ED;color:#7A2010;}
+.finding-item.action{background:#FFFBEC;color:#5A3800;border:1px solid #F0D98A;}
+.finding-dot{width:6px;height:6px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+.ok .finding-dot{background:var(--sage);}
+.warn .finding-dot{background:var(--rust);}
+.action .finding-dot{background:var(--gold);}
+.contractor-script{background:var(--ink);border-radius:12px;padding:14px;margin-top:4px;}
+.script-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;}
+.script-text{font-size:13px;color:#E8E4DC;line-height:1.7;font-style:italic;}
+.script-copy{margin-top:10px;background:var(--gold);color:var(--ink);border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;width:100%;}
+.cost-alert{background:#FEF0ED;border:1px solid #F5C4B3;border-radius:10px;padding:11px 13px;margin-top:12px;display:flex;gap:9px;align-items:flex-start;}
+.cost-alert-icon{font-size:16px;flex-shrink:0;}
+.cost-alert-text{font-size:12px;color:#7A2010;line-height:1.5;}
+.cost-alert-text strong{font-weight:600;}
+
+/* PDF KNOWLEDGE SECTION */
+.pdf-section{background:var(--card);border:1.5px solid var(--gold);border-radius:16px;margin-bottom:22px;overflow:hidden;animation:fadeUp 0.5s ease 0.2s both;}
+.pdf-section-header{background:var(--ink);padding:14px 18px;display:flex;align-items:center;gap:10px;}
+.pdf-section-icon{font-size:22px;}
+.pdf-section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;}
+.pdf-section-sub{font-size:11px;color:var(--gold);margin-top:1px;}
+.pdf-tabs{display:flex;border-bottom:1px solid var(--border);}
+.pdf-tab{flex:1;padding:10px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;border:none;background:var(--card);color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;}
+.pdf-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:var(--cream);}
+.pdf-tab-content{padding:14px 16px;display:none;}
+.pdf-tab-content.active{display:block;}
+.checklist-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.5;align-items:flex-start;}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item.critical{color:var(--rust);}
+.checklist-item.normal{color:var(--ink);}
+.checklist-icon{font-size:12px;flex-shrink:0;margin-top:1px;}
+.question-item{font-size:12px;padding:6px 0;border-bottom:1px dotted var(--border);color:var(--blue);line-height:1.5;}
+.question-item:last-child{border-bottom:none;}
+.question-item::before{content:'Q: ';font-weight:600;color:var(--muted);}
+.regret-card{background:var(--cream);border-radius:10px;padding:13px;margin-bottom:10px;border-left:3px solid var(--rust);}
+.regret-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.regret-meta{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.regret-body{font-size:12px;color:var(--ink);line-height:1.6;}
+.regret-cost{background:#FEF0ED;border-radius:7px;padding:8px 10px;margin-top:8px;font-size:12px;color:var(--rust);font-weight:600;}
+.regret-lesson{background:#FFFBEC;border-radius:7px;padding:8px 10px;margin-top:6px;font-size:12px;color:#5A3800;font-style:italic;}
+.when-to-check{background:#EEF8F2;border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;color:var(--sage);display:flex;gap:7px;align-items:flex-start;line-height:1.5;}
+.cost-if-missed{background:#FEF0ED;border-radius:8px;padding:9px 12px;margin-top:10px;font-size:12px;color:var(--rust);line-height:1.5;}
+.stage-note{background:#FFFBEC;border-radius:8px;padding:9px 12px;margin-top:8px;font-size:12px;color:#5A3800;line-height:1.5;font-style:italic;}
+
+/* UPGRADE */
+.upgrade-banner{background:var(--ink);border-radius:16px;padding:20px;margin-bottom:22px;text-align:center;}
+.upgrade-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;margin-bottom:5px;}
+.upgrade-sub{font-size:13px;color:#9A9590;margin-bottom:14px;line-height:1.5;}
+.upgrade-price{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);margin-bottom:3px;}
+.upgrade-price-sub{font-size:12px;color:#6A6560;margin-bottom:14px;}
+.btn-upgrade{width:100%;background:var(--gold);color:var(--ink);border:none;border-radius:12px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+.upgrade-features{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;text-align:left;}
+.uf{font-size:12px;color:#9A9590;display:flex;align-items:center;gap:5px;}
+.uf::before{content:'✓';color:var(--gold);font-weight:700;}
+.pdf-upsell{background:linear-gradient(135deg,#1A1A2E,#2A1A3E);border-radius:12px;padding:14px 16px;margin-top:14px;text-align:center;}
+.pdf-upsell-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--gold);margin-bottom:4px;}
+.pdf-upsell-sub{font-size:12px;color:#9A9590;margin-bottom:10px;line-height:1.5;}
+.btn-pdf{background:transparent;border:1.5px solid var(--gold);color:var(--gold);border-radius:9px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;}
+.error-card{background:#FEF0ED;border:1px solid #F5C4B3;border-radius:12px;padding:14px;font-size:13px;color:#7A2010;display:none;margin-bottom:14px;line-height:1.5;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;transition:transform 0.3s;z-index:999;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.reset-btn{width:100%;margin-top:14px;background:var(--paper);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">Smart<span>Site</span> Inspector</div>
+  <div class="badge-free">3 Free Checks</div>
+</div>
+
+<div class="hero">
+  <div class="hero-eyebrow">AI + Expert Knowledge Base</div>
+  <h1>Your site photo.<br><em>Expert verdict.</em></h1>
+  <p class="hero-sub">Upload a construction photo. Get AI analysis + the exact checklist, real owner story, and contractor script for your stage.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">63</div><div class="stat-lbl">Stages</div></div>
+    <div class="stat"><div class="stat-num">22</div><div class="stat-lbl">Owner stories</div></div>
+    <div class="stat"><div class="stat-num">Free</div><div class="stat-lbl">To try</div></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="section-label">Step 1 — Your current stage</div>
+  <div class="stage-grid" id="stage-grid">
+    <button class="stage-btn" data-stage="Foundation & Footing" data-key="foundation" onclick="selectStage(this)">
+      <div class="stage-icon">⛏️</div><div class="stage-name">Foundation</div><div class="stage-sub">PCC, footings, steel</div>
+    </button>
+    <button class="stage-btn" data-stage="Slab & RCC Work" data-key="slab" onclick="selectStage(this)">
+      <div class="stage-icon">🏗️</div><div class="stage-name">Slab & RCC</div><div class="stage-sub">Steel, concrete, curing</div>
+    </button>
+    <button class="stage-btn" data-stage="Masonry & Brickwork" data-key="masonry" onclick="selectStage(this)">
+      <div class="stage-icon">🧱</div><div class="stage-name">Masonry</div><div class="stage-sub">Walls, lintels, chajjas</div>
+    </button>
+    <button class="stage-btn" data-stage="Waterproofing" data-key="waterproofing" onclick="selectStage(this)">
+      <div class="stage-icon">💧</div><div class="stage-name">Waterproofing</div><div class="stage-sub">Terrace, bathrooms, sump</div>
+    </button>
+    <button class="stage-btn" data-stage="Plastering & Painting" data-key="plaster" onclick="selectStage(this)">
+      <div class="stage-icon">🖌️</div><div class="stage-name">Plaster & Paint</div><div class="stage-sub">Internal, external finish</div>
+    </button>
+    <button class="stage-btn" data-stage="Flooring & Tiling" data-key="flooring" onclick="selectStage(this)">
+      <div class="stage-icon">🔲</div><div class="stage-name">Flooring & Tiles</div><div class="stage-sub">Floor, bathroom, kitchen</div>
+    </button>
+    <button class="stage-btn" data-stage="Electrical Work" data-key="electrical" onclick="selectStage(this)">
+      <div class="stage-icon">⚡</div><div class="stage-name">Electrical</div><div class="stage-sub">Wiring, DB, switches</div>
+    </button>
+    <button class="stage-btn" data-stage="Final Inspection" data-key="final" onclick="selectStage(this)">
+      <div class="stage-icon">✅</div><div class="stage-name">Final Check</div><div class="stage-sub">Snag list, handover</div>
+    </button>
+  </div>
+
+  <div class="section-label">Step 2 — Upload site photo</div>
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <div id="upload-placeholder">
+      <div class="upload-icon">📷</div>
+      <div class="upload-title">Tap to upload photo</div>
+      <div class="upload-sub">Take on site or choose from gallery.</div>
+      <div class="upload-hint">Foundation pit · Steel bars · Slab · Brick walls · Waterproofing · Tiles</div>
+    </div>
+    <img id="preview-img" alt="Site photo">
+    <div class="img-change" id="img-change" onclick="event.stopPropagation();document.getElementById('file-input').click()">Change</div>
+  </div>
+  <input type="file" id="file-input" accept="image/*" capture="environment" onchange="handleFile(this)">
+
+  <button class="btn-analyse" id="analyse-btn" onclick="analysePhoto()" disabled>Analyse My Site Photo</button>
+  <div class="checks-left">You have <strong id="checks-count">3 free checks</strong> remaining</div>
+  <div class="error-card" id="error-card"></div>
+
+  <div class="loading-card" id="loading-card">
+    <div class="loading-spinner"></div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:5px">Analysing your site...</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">AI + expert knowledge base working together</div>
+    <ul class="loading-steps">
+      <li class="active" id="step-1"><span class="step-dot"></span>Reading stage context</li>
+      <li id="step-2"><span class="step-dot"></span>Analysing photo</li>
+      <li id="step-3"><span class="step-dot"></span>Checking quality standards</li>
+      <li id="step-4"><span class="step-dot"></span>Pulling expert checklist</li>
+      <li id="step-5"><span class="step-dot"></span>Generating contractor script</li>
+    </ul>
+  </div>
+
+  <div class="result-card" id="result-card"></div>
+  <div class="pdf-section" id="pdf-section" style="display:none"></div>
+  <div class="upgrade-banner" id="upgrade-banner" style="display:none">
+    <div class="upgrade-title">Unlimited checks — full build</div>
+    <div class="upgrade-sub">Your house takes 12–18 months. Get AI analysis on every site visit, every stage.</div>
+    <div class="upgrade-price">Rs.1,499</div>
+    <div class="upgrade-price-sub">One-time · Unlimited checks · Lifetime access</div>
+    <div class="upgrade-features">
+      <div class="uf">Unlimited photo checks</div><div class="uf">All 63 stages</div>
+      <div class="uf">Contractor scripts</div><div class="uf">Cost risk estimates</div>
+      <div class="uf">Expert checklists</div><div class="uf">Real owner stories</div>
+    </div>
+    <button class="btn-upgrade" onclick="showToast('Payment coming soon! We will notify you.')">Unlock Full Access — Rs.1,499</button>
+    <div class="pdf-upsell">
+      <div class="pdf-upsell-title">Also want the complete offline PDF bundle?</div>
+      <div class="pdf-upsell-sub">5 PDFs — all 63 stages, templates, BOQ, payment tracker, owner regrets. Print and carry to site.</div>
+      <button class="btn-pdf" onclick="showToast('Redirecting to PDF bundle...')">Get Smart Home Owner PDF Bundle — Rs.499</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── PDF KNOWLEDGE BASE ──
+const KB = {
+  foundation: {
+    stages: ['Stage 01 — Site Clearing & Layout','Stage 02 — Center Line Marking','Stage 03 — Excavation','Stage 04 — PCC','Stage 05 — Footing Steel Fixing','Stage 06 — Foundation Concrete + Sump','Stage 07 — Plinth Beam & Columns','Stage 08 — Backfilling & Compaction'],
+    when: 'Before any digging begins — and after each stage is complete before the next begins. Foundation work cannot be seen or corrected after soil is backfilled.',
+    checklist: [
+      {critical:true, text:'Plot boundary verified — all 4 corners measured and confirmed'},
+      {critical:true, text:'Cover blocks placed under AND on sides of all steel bars — visible on all faces'},
+      {critical:true, text:'No steel bar touching PCC surface directly'},
+      {critical:true, text:'Columns perfectly vertical — checked with plumb bob'},
+      {critical:true, text:'Anti-termite treatment applied before backfilling — cannot be added after'},
+      {critical:false, text:'Topsoil removed 8–12 inches deep — no organic material left'},
+      {critical:false, text:'PCC poured and leveled in ALL pits before steel begins'},
+      {critical:false, text:'Mechanical vibrator used continuously during concrete pour'},
+      {critical:false, text:'Sump location confirmed before foundation pour'},
+      {critical:false, text:'Backfilling done in 6-inch layers — not single dump'},
+      {critical:false, text:'Each backfill layer watered and compacted firmly'},
+    ],
+    questions: [
+      'Show me the structural drawing for this footing — are the bar sizes correct?',
+      'Are these cover blocks 40mm or 50mm thick?',
+      'Is the vibrator working and being used throughout the pour?',
+      'When exactly will anti-termite treatment be applied?',
+      'How many layers will you use for backfilling?',
+    ],
+    cost: 'Cover blocks missing = steel corrodes in 5–10 years = Rs.2–10 lakhs per footing. Wrong center line = wrong rooms forever = Rs.80,000–3,00,000. Poor backfill compaction = floor tile cracking in 1–3 years = Rs.30,000–80,000.',
+    note: 'Photograph the foundation steel from above and from the side before any concrete is poured. This is your only permanent record of what is inside.',
+    regrets: [
+      {num:'#05', title:'Cover Blocks Never Installed', city:'Bengaluru', budget:'Rs.62 lakhs', what:'Contractor assured cover blocks were placed. Owner never verified. After 7 years, one footing showed visible cracks on exterior column.', loss:'Rs.2,40,000 for structural assessment + repair of 3 footings', lesson:'Photograph the foundation steel before pour. The photo is the only proof you will ever have.'},
+      {num:'#11', title:'Anti-Termite Skipped', city:'Mysuru', budget:'Rs.48 lakhs', what:'Contractor said anti-termite was applied. No certificate collected. Wood damage found in door frames and flooring in Year 4.', loss:'Rs.85,000 in woodwork replacement + retreatment', lesson:'Collect the anti-termite certificate before backfilling. Without it, you have no proof and no warranty.'},
+    ]
+  },
+  slab: {
+    stages: ['Stage 09 — Slab Preparation','Stage 10 — Slab Concrete Pour','Stage 11 — Slab Curing'],
+    when: 'At least 1 day before pour date for preparation check. On the day of pour — be present for minimum 2 hours. Every day for 7–14 days after pour for curing check.',
+    checklist: [
+      {critical:true, text:'Tube water level check at multiple points across slab — maximum 10mm variance acceptable'},
+      {critical:true, text:'ALL electrical conduits and junction boxes installed — room by room list done'},
+      {critical:true, text:'ALL fan hooks, AC wiring conduits, swing hooks placed — not one missed'},
+      {critical:true, text:'Mechanical vibrator running throughout entire pour — non-negotiable'},
+      {critical:true, text:'Shuttering boards flat — no bent or bowed boards that will create uneven slab'},
+      {critical:false, text:'Steel reinforcement per drawing — bar sizes and spacing verified'},
+      {critical:false, text:'Adequate props every 4–5 feet — not spaced wider'},
+      {critical:false, text:'No excess water added to concrete for easy pouring'},
+      {critical:false, text:'Curing started within 24 hours — slab kept wet for minimum 7 days'},
+      {critical:false, text:'RMC delivery challan collected from truck driver'},
+    ],
+    questions: [
+      'Show me the slab reinforcement drawing — are bar sizes and spacing correct?',
+      'Are ALL fan hooks and AC conduits placed? Let me walk room by room to verify.',
+      'Is the RMC truck booked — what time does it arrive?',
+      'Is the vibrator working — will it be used throughout, not just at the start?',
+      'Who is responsible for curing — at what times will water be applied?',
+    ],
+    cost: 'Missing fan hooks = Rs.2,000–5,000 per hook to break ceiling later. Uneven slab = Rs.20,000–50,000 extra screed. Under-cured slab = 30–40% less strength — structural risk that cannot be fixed.',
+    note: 'Make a written list of every room with fans, lights, ACs, and swings before the slab preparation visit. Tick each one physically on site. This 15-minute exercise prevents permanent problems.',
+    regrets: [
+      {num:'#02', title:"We Didn't Check Slab Level", city:'Hyderabad', budget:'Rs.92 lakhs', what:'No tube-level check done. Center of 1,500 sqft slab was 28mm lower than edges. Found during floor screed.', loss:'Rs.42,000 extra materials + Rs.18,000 extra labor = Rs.60,000', lesson:'A tube-level check during slab preparation takes 15 minutes and costs nothing.'},
+      {num:'#07', title:'Fan Hooks — Every Room Forgotten', city:'Bengaluru', budget:'Rs.74 lakhs', what:'Owner was not present for slab preparation. Contractor did not place fan hooks in 4 rooms and 2 balconies.', loss:'Rs.4,000 per hook × 14 hooks = Rs.56,000 to break ceiling and re-fix', lesson:'Walk every room with a list. Tick every hook. Do not leave site until all are confirmed.'},
+    ]
+  },
+  masonry: {
+    stages: ['Stage 12 — Brick/Block Masonry','Stage 13 — Lintels, Chajjas & Openings'],
+    when: 'At first course of brickwork — the most important masonry visit. Again at every 3 feet of height. Before lintel casting and after chajja completion.',
+    checklist: [
+      {critical:true, text:'First course approved — walk every room, measure dimensions, feel the space'},
+      {critical:true, text:'All room dimensions physically measured at first course — match drawing exactly'},
+      {critical:true, text:'ALL door heights confirmed in writing before lintel casting'},
+      {critical:true, text:'Chajja slope is outward — pour water to test the day after casting'},
+      {critical:false, text:'Walls plumb — plumb bob check every 5–6 courses of brickwork'},
+      {critical:false, text:'Mortar thickness 10–12mm — not thin patches or excessive lumps'},
+      {critical:false, text:'Coping band provided at 30-inch height in all 4-inch partition walls'},
+      {critical:false, text:'Window and door opening widths match approved drawing'},
+      {critical:false, text:'Bricks soaked before laying — reduces mortar absorption'},
+      {critical:false, text:'Lintel bearing minimum 9 inches on both sides of every opening'},
+    ],
+    questions: [
+      'Can you show me the first course before going higher — I want to walk each room.',
+      'What is the mortar mix ratio you are using?',
+      'Are you providing coping band in all 4-inch partition walls?',
+      'What door heights are we building to — is this confirmed in the drawing?',
+      'Is the chajja slope designed to drain outward?',
+    ],
+    cost: 'Wrong wall found after full height = demolish and rebuild Rs.25,000–60,000 per wall. Wrong door height after lintel = Rs.12,000–22,000 per door to demolish and recast. Inward chajja slope = lifetime water seepage into window wall.',
+    note: 'The first-course approval visit is the single most important masonry visit. Everything correctable here becomes permanently wrong 3 days later when walls reach full height.',
+    regrets: [
+      {num:'#01', title:'"Plaster Will Fix Everything"', city:'Bengaluru', budget:'Rs.78 lakhs', what:'Contractor said walls just need to be roughly straight — plaster would fix the rest. Owner did not walk first course. Walls 1–2 inches out of plumb in 3 rooms.', loss:'Rs.62,000 extra cement + Rs.45,000 re-plaster repair = Rs.1,07,000', lesson:'Good masonry saves more money than any bargaining. Walk the first course.'},
+      {num:'#13', title:'Wrong Door Heights — All 8 Doors', city:'Pune', budget:'Rs.55 lakhs', what:'Contractor built to standard height without confirming with owner. Owner wanted higher doors for aesthetic. All 8 lintels had to be demolished and recast.', loss:'Rs.18,000 per door × 8 doors = Rs.1,44,000', lesson:'Confirm door heights in writing before a single lintel is cast. Not after, not during — before.'},
+    ]
+  },
+  waterproofing: {
+    stages: ['Stage 14 — Terrace Waterproofing','Stage 18 — Floor Waterproofing (Wet Areas)'],
+    when: 'After terrace slab before any finishing layer. Before bathroom floor screed — after brick walls are done. The ponding test must be completed before ANY tiling begins.',
+    checklist: [
+      {critical:true, text:'Terrace: water ponding test — 2 inches of water for 24 hours, check ceiling below for seepage'},
+      {critical:true, text:'Terrace slope toward drainage outlet — verify with water flow'},
+      {critical:true, text:'Bathroom: 24-hour ponding test done BEFORE any tiling begins — no exceptions'},
+      {critical:true, text:'Check slab below bathroom during ponding test'},
+      {critical:false, text:'Both coats applied per manufacturer specification with correct interval between coats'},
+      {critical:false, text:'Waterproofing carried up parapet wall minimum 9 inches'},
+      {critical:false, text:'Waterproofing carried up bathroom walls minimum 6 inches'},
+      {critical:false, text:'All roof penetrations — pipes, AC pipes, antenna cables — sealed'},
+      {critical:false, text:'Drain outlet not blocked by waterproofing material'},
+      {critical:false, text:'Protective screed or tile layer installed over terrace waterproofing'},
+      {critical:false, text:'No damage to waterproofing layer before tiles placed'},
+    ],
+    questions: [
+      'When was the ponding test done — can I see the result?',
+      'Have both coats been applied with the correct waiting time between them?',
+      'Is the waterproofing carried up the walls — 9 inches on terrace, 6 inches in bathrooms?',
+      'Are all pipe entry and exit points properly sealed?',
+      'Is there a protective layer over the terrace waterproofing?',
+    ],
+    cost: 'Failed terrace waterproofing = ceiling seepage throughout house = Rs.80,000–2,50,000 + interior damage. Failed bathroom waterproofing = Rs.40,000–80,000 per bathroom to remedy. These are the most common and most expensive post-possession repairs.',
+    note: 'Video the ponding test on your phone with a timestamp. This video is your proof if waterproofing fails under warranty. Without this video, the waterproofing contractor can deny correct application.',
+    regrets: [
+      {num:'#04', title:'The Monsoon Ceiling', city:'Bengaluru', budget:'Rs.85 lakhs', what:'Moved in June. First July monsoon — 3 rooms had ceiling seepage. Terrace waterproofing had failed at parapet junction.', loss:'Rs.1,20,000 repair including breaking tiles, redoing waterproofing, and repainting 3 room ceilings', lesson:'The ponding test must be done before any protective layer goes over the waterproofing. Never skip it.'},
+      {num:'#08', title:'Every Bathroom Leaks', city:'Chennai', budget:'Rs.68 lakhs', what:'Builder applied waterproofing but no ponding test was done. All 3 bathrooms showed seepage within 14 months of possession.', loss:'Rs.58,000 × 3 bathrooms = Rs.1,74,000', lesson:'The 24-hour bathroom ponding test is the single most important test in finishing. Never allow tiling before this test.'},
+    ]
+  },
+  plaster: {
+    stages: ['Stage 16 — Internal Plastering','Stage 17 — External Plastering','Stage 22 — Painting'],
+    when: 'During plastering and after completion before putty. After external plaster before painting. After primer coat, after first paint coat, and after final coat.',
+    checklist: [
+      {critical:true, text:'GI mesh applied at every column-to-wall and beam-to-wall junction — non-negotiable'},
+      {critical:false, text:'43-grade cement used for plaster — NOT 53-grade'},
+      {critical:false, text:'Plaster thickness 12–15mm maximum — not more'},
+      {critical:false, text:'Surface truly flat — check with spirit level or halogen torch at 10 degrees'},
+      {critical:false, text:'All electrical boxes flush with plaster surface'},
+      {critical:false, text:'Weatherproof additive mixed in external plaster'},
+      {critical:false, text:'Plaster cured with water for minimum 5 days'},
+      {critical:false, text:'Primer coat on ALL surfaces before any paint applied'},
+      {critical:false, text:'Paint tin brand verified on site — opened in front of you'},
+      {critical:false, text:'Minimum 4 hours between each coat of paint'},
+    ],
+    questions: [
+      'What cement grade are you using for plaster — 43 or 53?',
+      'Are you applying GI mesh at all RCC-masonry junctions?',
+      'What is the plaster thickness here — is it within 12–15mm?',
+      'Show me the paint tins you are opening — what is the batch number?',
+      'How many coats of paint are you applying?',
+    ],
+    cost: 'No GI mesh at junctions = guaranteed crack in 6–18 months = Rs.15,000–35,000 to replaster one room. No primer = paint peels in 18 months = Rs.25,000–60,000 full repaint. Wrong paint brand = Rs.15,000–30,000 quality difference.',
+    note: 'Hold your phone torch at 10 degrees to the plastered wall. Waves that were completely invisible become obvious immediately. This test takes 30 seconds and tells you everything about plaster quality.',
+    regrets: [
+      {num:'#03', title:'No Mesh, All Cracks', city:'Bengaluru', budget:'Rs.71 lakhs', what:'GI mesh not applied at any junction. Within 10 months of possession, hairline cracks appeared at every beam-wall junction in the house — 23 cracks in total.', loss:'Rs.95,000 for crack filling, replastering, and repainting across all rooms', lesson:'GI mesh costs Rs.8 per sqft of junction. Not applying it costs Rs.95,000 later.'},
+    ]
+  },
+  flooring: {
+    stages: ['Stage 19 — Floor Tiling (Dry Areas)','Stage 20 — Bathroom Tiling & Fixtures'],
+    when: 'After screed sets. Dry layout must be approved before any adhesive. Hollow check after each tile is fixed. Final check before grouting begins.',
+    checklist: [
+      {critical:true, text:'Dry layout done before any adhesive — pattern and cuts approved by owner'},
+      {critical:true, text:'All tile boxes from same batch — lot number verified on every box'},
+      {critical:true, text:'Every tile tapped after fixing — no hollow sound acceptable'},
+      {critical:true, text:'Bathroom ponding test passed before ANY bathroom tiling begins'},
+      {critical:false, text:'Spacers used for consistent 3mm grout gaps'},
+      {critical:false, text:'5mm expansion gap at all walls'},
+      {critical:false, text:'Cuts at wall edges balanced on both sides — no tiny cut pieces'},
+      {critical:false, text:'Grouting done after minimum 24 hours of tile setting'},
+      {critical:false, text:'Bathroom floor slope drains water toward outlet — verified with water pour'},
+      {critical:false, text:'WC base sealed with silicone to floor — no gap'},
+    ],
+    questions: [
+      'Have you done the dry layout — can I approve the pattern before fixing begins?',
+      'Are all tiles from the same batch? Show me the lot number on the boxes.',
+      'Are you tapping every tile as you go — what happens if a hollow one is found?',
+      'When will grouting begin — have you waited 24 hours?',
+      'Is the bathroom floor slope toward the drain?',
+    ],
+    cost: 'No dry layout = poor cuts, 10% material waste, bad pattern. Hollow tiles = cracks later = Rs.150–300/sqft redo. Wrong batch tiles = 10% of floor different shade = full floor redo. No WC base seal = contamination and permanent odour.',
+    note: 'Buy exactly 10% extra tiles from the same batch at purchase time. Keep them stored safely. When one tile breaks 5 years later, you will need an exact match — and it will never be available from a new batch.',
+    regrets: [
+      {num:'#16', title:'Hollow Tiles — Entire Bedroom', city:'Hyderabad', budget:'Rs.79 lakhs', what:'No tap test done during fixing. After 8 months, 40% of master bedroom tiles cracked due to hollow bedding.', loss:'Rs.45,000 to break and relay entire bedroom floor', lesson:'Tap test every single tile during fixing. A hollow sound means immediate removal and relay — not later.'},
+      {num:'#19', title:'Different Shade — 3 Rooms', city:'Bengaluru', budget:'Rs.66 lakhs', what:'Tiles ran short. Contractor ordered additional tiles from new stock. 3 rooms have a visible shade difference along one wall.', loss:'Aesthetic — no financial fix possible. The shade difference is permanent.', lesson:'Order 10–15% extra from the same batch at purchase. Check lot numbers on every box.'},
+    ]
+  },
+  electrical: {
+    stages: ['Stage 15 — Concealed Electrical & Plumbing','Stage 23 — Electrical Testing'],
+    when: '2 sessions: planning session 1 week before plaster, and site verification before plastering begins. Full testing after all fixtures installed before final payment.',
+    checklist: [
+      {critical:true, text:'Every switch position confirmed room by room in writing before conduits are fixed'},
+      {critical:true, text:'Every AC power point marked on wall — one per AC location'},
+      {critical:true, text:'All geyser points, router point, CCTV provisions placed'},
+      {critical:true, text:'Every switch and socket tested — not a sample, every single one'},
+      {critical:true, text:'Earthing tested with socket tester — must show earth at every socket'},
+      {critical:false, text:'Separate circuit for each AC unit — confirmed in DB layout'},
+      {critical:false, text:'Inverter/UPS wiring provision made if required'},
+      {critical:false, text:'All MCBs in DB labeled clearly for every circuit'},
+      {critical:false, text:'RCCB tripping test done and passed'},
+      {critical:false, text:'All outdoor and terrace points working'},
+    ],
+    questions: [
+      'Show me the electrical layout drawing — does it match what is on the walls?',
+      'Is there a separate MCB circuit for each AC unit?',
+      'Have inverter battery room wiring provisions been made?',
+      'Can you test the earthing connection right now with my tester?',
+      'Are all outdoor and terrace circuits on the DB?',
+    ],
+    cost: '1 missed AC point = Rs.5,000–15,000 to break wall after plaster. No inverter wiring = Rs.15,000–40,000 to add later. Wrong earthing = electrocution risk. Loose connection = fire risk.',
+    note: 'Buy a Rs.150 socket tester from any electrical shop. It plugs into any socket and 3 LED lights immediately show safe/unsafe/no earth. Test every single socket yourself before final payment.',
+    regrets: [
+      {num:'#21', title:'12 Switches in Wrong Places', city:'Bengaluru', budget:'Rs.74 lakhs', what:'Switch positions not confirmed with owner before conduits were fixed. After possession, 12 switches were inconveniently placed. Cost to move each switch after plaster: Rs.3,000.', loss:'Rs.3,000 × 12 = Rs.36,000', lesson:'Walk every room with the electrician. Stand where you would naturally reach for a switch. Mark it. Sign off before conduits go in.'},
+      {num:'#22', title:'No Earthing — Found at Year 3', city:'Chennai', budget:'Rs.81 lakhs', what:'Earthing connection made but not tested. In Year 3, owner felt tingle on washing machine. Electrician found earthing had never been connected at the DB.', loss:'Rs.8,000 to fix + 3 years of safety risk', lesson:'Test earthing with a socket tester at every socket before final payment. It takes 10 minutes and costs Rs.150.'},
+    ]
+  },
+  final: {
+    stages: ['Stage 24 — Final Inspection & Snag List'],
+    when: 'Full walk-through before releasing final 10% payment. Take your time — sit in every room, test every fixture, walk every corner.',
+    checklist: [
+      {critical:true, text:'Written snag list prepared — every item documented before discussing with contractor'},
+      {critical:true, text:'Final payment NOT released with any snags pending'},
+      {critical:true, text:'All structural and service drawings collected before payment'},
+      {critical:false, text:'Every switch and socket tested — every room'},
+      {critical:false, text:'Every tap run for 5 minutes — check for leaks'},
+      {critical:false, text:'WC flush tested 10 times — base sealed, no gap'},
+      {critical:false, text:'All doors opened and closed — no dragging'},
+      {critical:false, text:'All window sills tested with water — slope outward confirmed'},
+      {critical:false, text:'Waterproofing warranty document and certificate collected'},
+      {critical:false, text:'Anti-termite certificate collected'},
+      {critical:false, text:'All keys accounted for — all sets handed over'},
+    ],
+    questions: [
+      'Can we walk through every room together right now?',
+      'Can I get structural drawings, electrical layout, and plumbing layout before final payment?',
+      'When will pending snag items be fixed — can we put a date in writing?',
+      'Final payment will be released after all snag items are cleared — is that agreed?',
+      'How many sets of keys are there — can I have all sets now?',
+    ],
+    cost: 'Releasing final 10% before snag clearance = contractor has no incentive to return = Rs.30,000–1,50,000 in permanently deferred fixes.',
+    note: 'Bring a fresh pair of eyes — a spouse, friend, or family member who has not visited the site recently. They will notice things you have become blind to after months of construction.',
+    regrets: [
+      {num:'#20', title:'Final Payment Released Early', city:'Bengaluru', budget:'Rs.88 lakhs', what:'Owner was eager to move in. Released final payment before snag list was cleared. Contractor became unavailable. 14 pending items never fixed.', loss:'Rs.1,10,000 to hire separate contractors to fix all pending items', lesson:'The final 10% is your most powerful tool. Never release it until every snag is cleared in writing.'},
+    ]
+  }
+};
+
+let selectedStage = null;
+let selectedKey = null;
+let selectedImageBase64 = null;
+let checksRemaining = 3;
+
+function selectStage(btn) {
+  document.querySelectorAll('.stage-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedStage = btn.dataset.stage;
+  selectedKey = btn.dataset.key;
+  updateBtn();
+}
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    selectedImageBase64 = e.target.result.split(',')[1];
+    const img = document.getElementById('preview-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('upload-placeholder').style.display = 'none';
+    document.getElementById('img-change').style.display = 'block';
+    document.getElementById('upload-zone').style.padding = '0';
+    updateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateBtn() {
+  document.getElementById('analyse-btn').disabled = !(selectedStage && selectedImageBase64 && checksRemaining > 0);
+}
+
+async function analysePhoto() {
+  if (!selectedStage || !selectedImageBase64) return;
+  document.getElementById('loading-card').style.display = 'block';
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('pdf-section').style.display = 'none';
+  document.getElementById('error-card').style.display = 'none';
+  document.getElementById('analyse-btn').disabled = true;
+  document.getElementById('upgrade-banner').style.display = 'none';
+
+  const stepIds = ['step-1','step-2','step-3','step-4','step-5'];
+  let si = 0;
+  const iv = setInterval(() => {
+    if (si > 0) { const prev = document.getElementById(stepIds[si-1]); prev.className = 'done'; prev.querySelector('.step-dot').style.background='var(--sage)'; }
+    if (si < stepIds.length) { document.getElementById(stepIds[si]).className = 'active'; si++; }
+  }, 600);
+
+  const prompt = `You are an expert Indian house construction quality inspector with 20 years experience in Bengaluru. A house owner has uploaded a site photo at stage: "${selectedStage}".
+
+Examine the image carefully and provide a quality inspection report. Be specific about what you can actually see.
+
+Respond ONLY in this exact JSON (no markdown, no backticks):
+{"overall":"PASS or NEEDS_ATTENTION or CRITICAL_ISSUES","summary":"2-sentence assessment","good_points":["specific visible thing that looks correct"],"issues":["specific problem visible if any"],"immediate_actions":["specific action to take now"],"contractor_script":"Exact words to say to contractor today, firm and professional tone with technical terms","cost_risk":"Cost estimate in Indian Rupees if issues not addressed","pro_tip":"One critical tip for ${selectedStage} most owners miss"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:selectedImageBase64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    clearInterval(iv);
+    stepIds.forEach(s => { document.getElementById(s).className = 'done'; });
+    const data = await res.json();
+    const raw = data.content.map(i=>i.text||'').join('');
+    const result = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    checksRemaining--;
+    document.getElementById('checks-count').textContent = `${checksRemaining} free check${checksRemaining!==1?'s':''} remaining`;
+    setTimeout(() => {
+      document.getElementById('loading-card').style.display = 'none';
+      renderResult(result);
+      renderPDFSection();
+      if (checksRemaining <= 1) document.getElementById('upgrade-banner').style.display = 'block';
+    }, 400);
+  } catch(err) {
+    clearInterval(iv);
+    document.getElementById('loading-card').style.display = 'none';
+    const ec = document.getElementById('error-card');
+    ec.style.display = 'block';
+    ec.textContent = 'Analysis failed. Check your internet connection and try again. Make sure the photo is clear and well-lit.';
+    document.getElementById('analyse-btn').disabled = false;
+  }
+}
+
+function renderResult(r) {
+  const isOk = r.overall==='PASS', isCrit = r.overall==='CRITICAL_ISSUES';
+  const emoji = isOk?'✅':isCrit?'🚨':'⚠️';
+  const verdict = isOk?'Looks Good':isCrit?'Critical Issues':'Needs Attention';
+  let goodHTML = (r.good_points||[]).map(g=>`<div class="finding-item ok"><div class="finding-dot"></div><span>${g}</span></div>`).join('');
+  let issuesHTML = (r.issues||[]).map(i=>`<div class="finding-item warn"><div class="finding-dot"></div><span>${i}</span></div>`).join('');
+  let actionsHTML = (r.immediate_actions||[]).map(a=>`<div class="finding-item action"><div class="finding-dot"></div><span>${a}</span></div>`).join('');
+  const card = document.getElementById('result-card');
+  card.innerHTML = `
+    <div class="result-header">
+      <div><div class="result-stage-tag">${selectedStage}</div><div class="result-title">AI Inspection Report</div></div>
+      <div style="margin-left:auto;text-align:center"><div style="font-size:26px">${emoji}</div><div style="font-size:11px;font-weight:600;color:${isOk?'var(--sage)':isCrit?'var(--rust)':'var(--gold)'};margin-top:2px">${verdict}</div></div>
+    </div>
+    <div class="verdict-bar">
+      <div class="verdict-item"><div class="verdict-icon">⚠️</div><div class="verdict-label">Issues</div><div class="verdict-value ${isCrit?'verdict-warn':'verdict-ok'}">${(r.issues||[]).length}</div></div>
+      <div class="verdict-item"><div class="verdict-icon">✅</div><div class="verdict-label">Good</div><div class="verdict-value verdict-ok">${(r.good_points||[]).length}</div></div>
+      <div class="verdict-item"><div class="verdict-icon">⚡</div><div class="verdict-label">Actions</div><div class="verdict-value verdict-neutral">${(r.immediate_actions||[]).length}</div></div>
+    </div>
+    <div class="result-body">
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px;padding:11px;background:var(--paper);border-radius:9px">${r.summary}</div>
+      ${goodHTML?`<div class="finding-section"><div class="finding-title finding-ok">✓ What looks good</div>${goodHTML}</div>`:''}
+      ${issuesHTML?`<div class="finding-section"><div class="finding-title finding-warn">⚠ Issues spotted</div>${issuesHTML}</div>`:''}
+      ${actionsHTML?`<div class="finding-section"><div class="finding-title finding-action">→ What to do now</div>${actionsHTML}</div>`:''}
+      <div class="finding-section">
+        <div class="finding-title" style="color:var(--ink)">💬 What to say to your contractor</div>
+        <div class="contractor-script">
+          <div class="script-label">Your exact script</div>
+          <div class="script-text" id="script-text">"${r.contractor_script}"</div>
+          <button class="script-copy" onclick="copyScript()">Copy this script</button>
+        </div>
+      </div>
+      ${r.cost_risk?`<div class="cost-alert"><div class="cost-alert-icon">💰</div><div class="cost-alert-text"><strong>Cost if ignored:</strong> ${r.cost_risk}</div></div>`:''}
+      ${r.pro_tip?`<div style="background:#FFFBEC;border:1px solid #F0D98A;border-radius:9px;padding:11px 13px;margin-top:12px"><div style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:5px">Pro tip</div><div style="font-size:13px;color:#5A3800;line-height:1.5">${r.pro_tip}</div></div>`:''}
+      <button class="reset-btn" onclick="resetForm()">Check Another Photo</button>
+    </div>`;
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderPDFSection() {
+  const kb = KB[selectedKey];
+  if (!kb) return;
+  const sec = document.getElementById('pdf-section');
+
+  // Build checklist HTML
+  const critItems = kb.checklist.filter(c=>c.critical).map(c=>`<div class="checklist-item critical"><span class="checklist-icon">★</span><span>${c.text}</span></div>`).join('');
+  const normItems = kb.checklist.filter(c=>!c.critical).map(c=>`<div class="checklist-item normal"><span class="checklist-icon">☐</span><span>${c.text}</span></div>`).join('');
+
+  // Build questions HTML
+  const qHTML = kb.questions.map(q=>`<div class="question-item">${q}</div>`).join('');
+
+  // Build regrets HTML
+  const rHTML = kb.regrets.map(r=>`
+    <div class="regret-card">
+      <div class="regret-title">${r.num} — "${r.title}"</div>
+      <div class="regret-meta">${r.city} | Budget: ${r.budget}</div>
+      <div class="regret-body">${r.what}</div>
+      <div class="regret-cost">Money lost: ${r.loss}</div>
+      <div class="regret-lesson">Lesson: ${r.lesson}</div>
+    </div>`).join('');
+
+  sec.innerHTML = `
+    <div class="pdf-section-header">
+      <div class="pdf-section-icon">📚</div>
+      <div>
+        <div class="pdf-section-title">Expert Guide — ${selectedStage}</div>
+        <div class="pdf-section-sub">From Smart Home Owner System</div>
+      </div>
+    </div>
+    <div class="pdf-tabs">
+      <button class="pdf-tab active" onclick="switchTab(this,'tab-checklist')">Checklist</button>
+      <button class="pdf-tab" onclick="switchTab(this,'tab-questions')">Ask Contractor</button>
+      <button class="pdf-tab" onclick="switchTab(this,'tab-regrets')">Real Stories</button>
+      <button class="pdf-tab" onclick="switchTab(this,'tab-cost')">Cost & Notes</button>
+    </div>
+    <div class="pdf-tab-content active" id="tab-checklist">
+      <div class="when-to-check"><span>🕐</span><span><strong>When to check:</strong> ${kb.when}</span></div>
+      <div style="font-size:11px;font-weight:600;color:var(--rust);letter-spacing:0.5px;margin-bottom:6px;text-transform:uppercase">★ Critical — do not skip</div>
+      ${critItems}
+      <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin:10px 0 6px;text-transform:uppercase">☐ Standard checks</div>
+      ${normItems}
+    </div>
+    <div class="pdf-tab-content" id="tab-questions">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">Ask these questions directly to your contractor on site. Write down the answers.</div>
+      ${qHTML}
+    </div>
+    <div class="pdf-tab-content" id="tab-regrets">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">Real situations from Indian house owners at this exact stage.</div>
+      ${rHTML}
+    </div>
+    <div class="pdf-tab-content" id="tab-cost">
+      <div class="cost-if-missed"><strong>Cost if missed:</strong> ${kb.cost}</div>
+      <div class="stage-note"><strong>Expert note:</strong> ${kb.note}</div>
+      <div style="margin-top:12px;padding:12px;background:var(--paper);border-radius:9px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6">
+        This is a preview from the <strong style="color:var(--ink)">Smart Home Owner PDF Bundle</strong> — 5 PDFs covering all 63 stages with checklists, templates, BOQ, payment tracker and 22 real owner stories.<br>
+        <button onclick="showToast('Redirecting to PDF bundle...')" style="margin-top:10px;background:var(--gold);color:var(--ink);border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif">Get Full Bundle — Rs.499</button>
+      </div>
+    </div>`;
+
+  sec.style.display = 'block';
+  setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}), 300);
+}
+
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.pdf-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pdf-tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function copyScript() {
+  const t = document.getElementById('script-text').textContent;
+  navigator.clipboard.writeText(t).then(()=>showToast('Script copied!'));
+}
+
+function resetForm() {
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('pdf-section').style.display = 'none';
+  document.getElementById('preview-img').style.display = 'none';
+  document.getElementById('upload-placeholder').style.display = 'block';
+  document.getElementById('img-change').style.display = 'none';
+  document.getElementById('upload-zone').style.padding = '28px 20px';
+  document.getElementById('file-input').value = '';
+  selectedImageBase64 = null;
+  if (checksRemaining > 0) document.getElementById('analyse-btn').disabled = !selectedStage;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
